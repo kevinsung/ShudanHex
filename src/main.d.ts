@@ -1,4 +1,4 @@
-export { default as Goban } from "./Goban";
-export { default as BoundedGoban } from "./BoundedGoban";
-export * from "./Goban";
-export * from "./BoundedGoban";
+export { default as Goban } from "./Goban.d.ts";
+export { default as BoundedGoban } from "./BoundedGoban.d.ts";
+export * from "./Goban.d.ts";
+export * from "./BoundedGoban.d.ts";

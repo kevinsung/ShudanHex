@@ -1,4 +1,4 @@
-const Goban = require('./Goban')
-const BoundedGoban = require('./BoundedGoban')
+/// <reference types="./main.d.ts" />
 
-module.exports = {Goban, BoundedGoban}
+export { default as Goban } from "./Goban.js";
+export { default as BoundedGoban } from "./BoundedGoban.js";

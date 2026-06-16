@@ -1,4 +1,4 @@
-export const alpha = "ABCDEFGHJKLMNOPQRSTUVWXYZ";
+export const alpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 export const vertexEvents = [
   "Click",
   "MouseDown",
@@ -23,11 +23,15 @@ export const range = (n) =>
 
 export const random = (n) => Math.floor(Math.random() * (n + 1));
 
+// Hex grid: 6 neighbors (left, right, upper-left, upper-right, lower-left, lower-right)
+// plus the cell itself. Row y is offset right by y*W/2.
 export const neighborhood = ([x, y]) => [
   [x, y],
   [x - 1, y],
   [x + 1, y],
   [x, y - 1],
+  [x + 1, y - 1],
+  [x - 1, y + 1],
   [x, y + 1],
 ];
 
@@ -39,28 +43,51 @@ export const lineEquals = ([v1, w1], [v2, w2]) =>
 export const signEquals = (...xs) =>
   xs.length === 0 ? true : xs.every((x) => Math.sign(x) === Math.sign(xs[0]));
 
-export function getHoshis(width, height) {
-  if (Math.min(width, height) <= 6) return [];
+// Star points for a Hex board. Odd board: single center dot.
+// Even board (at least one even dimension): two cells straddling the geometric center.
+export function getStarPoints(width, height) {
+  if (width === 0 || height === 0) return [];
 
-  let [nearX, nearY] = [width, height].map((x) => (x >= 13 ? 3 : 2));
-  let [farX, farY] = [width - nearX - 1, height - nearY - 1];
-  let [middleX, middleY] = [width, height].map((x) => (x - 1) / 2);
+  const cx = (width - 1) / 2;
+  const cy = (height - 1) / 2;
+  const cxInt = cx === Math.floor(cx);
+  const cyInt = cy === Math.floor(cy);
 
-  let result = [
-    [nearX, farY],
-    [farX, nearY],
-    [farX, farY],
-    [nearX, nearY],
+  if (cxInt && cyInt) {
+    return [[cx, cy]];
+  }
+
+  const p1 = [Math.floor(cx), Math.ceil(cy)];
+  const p2 = [Math.ceil(cx), Math.floor(cy)];
+
+  if (p1[0] === p2[0] && p1[1] === p2[1]) return [p1];
+  return [p1, p2];
+}
+
+// Center of cell (ix, iy) in display coordinates (0-based within visible range),
+// in pixels. vertexSize is W (horizontal cell spacing).
+// R = W/sqrt(3), H = W*sqrt(3)/2.
+export function cellCenter(ix, iy, vertexSize) {
+  const R = vertexSize / Math.sqrt(3);
+  const H = (vertexSize * Math.sqrt(3)) / 2;
+  return {
+    cx: (ix + iy / 2 + 0.5) * vertexSize,
+    cy: R + iy * H,
+  };
+}
+
+// Six corners of a pointy-top hex centered at (cx, cy) with circumradius R.
+// Returns [[x,y], ...] in order: top, top-right, bottom-right, bottom, bottom-left, top-left.
+export function hexCorners(cx, cy, R) {
+  const half = R * (Math.sqrt(3) / 2); // = W/2
+  return [
+    [cx, cy - R],
+    [cx + half, cy - R / 2],
+    [cx + half, cy + R / 2],
+    [cx, cy + R],
+    [cx - half, cy + R / 2],
+    [cx - half, cy - R / 2],
   ];
-
-  if (width % 2 !== 0 && height % 2 !== 0 && width !== 7 && height !== 7)
-    result.push([middleX, middleY]);
-  if (width % 2 !== 0 && width !== 7)
-    result.push([middleX, nearY], [middleX, farY]);
-  if (height % 2 !== 0 && height !== 7)
-    result.push([nearX, middleY], [farX, middleY]);
-
-  return result;
 }
 
 export function readjustShifts(shiftMap, vertex = null) {

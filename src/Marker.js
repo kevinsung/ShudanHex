@@ -2,7 +2,7 @@ import { createElement as h } from "preact";
 
 export default function Marker({ sign, type, label, zIndex }) {
   let containerProps = {
-    className: "shudan-marker",
+    className: "shudanhex-marker",
     style: {
       position: "absolute",
       zIndex,

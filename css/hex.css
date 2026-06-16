@@ -1,0 +1,435 @@
+.shudanhex-board {
+    --shudanhex-board-border-width: .15em;
+    --shudanhex-board-border-color: #CA933A;
+
+    --shudanhex-board-background-color: #F1B458;
+    --shudanhex-board-foreground-color: #5E2E0C;
+
+    --shudanhex-black-background-color: #222;
+    --shudanhex-black-foreground-color: #eee;
+
+    --shudanhex-white-background-color: #eee;
+    --shudanhex-white-foreground-color: #222;
+
+    --shudanhex-edge-width: .18em;
+
+    /* hexagon width : stone diameter = golden ratio (1/φ) */
+    --shudanhex-stone-size: 0.618033988749895em;
+
+    position: relative;
+    border: var(--shudanhex-board-border-width) solid var(--shudanhex-board-border-color);
+    color: var(--shudanhex-board-foreground-color);
+  }
+  .shudanhex-board:not(.shudanhex-coordinates) {
+    padding: .25em;
+  }
+  .shudanhex-board.shudanhex-coordinates {
+    padding: .8em .25em .25em 1em;
+  }
+  .shudanhex-board-image {
+    background: url('./board.png') var(--shudanhex-board-background-color);
+}
+
+.shudanhex-coordx span, .shudanhex-coordy span {
+  font-size: .6em;
+}
+
+.shudanhex-vertex div {
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Board gradient */
+
+.shudanhex-board::after {
+  content: '';
+  position: absolute;
+  top: calc(-1 * var(--shudanhex-board-border-width));
+  left: calc(-1 * var(--shudanhex-board-border-width));
+  bottom: calc(-1 * var(--shudanhex-board-border-width));
+  right: calc(-1 * var(--shudanhex-board-border-width));
+  background: linear-gradient(to bottom, rgba(234, 220, 192, .1), transparent),
+    linear-gradient(to bottom, transparent, rgba(23, 10, 2, .05));
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Busy screen */
+
+.shudanhex-board.shudanhex-busy::after {
+  animation: 2s linear -.5s shudanhex-busy infinite;
+  background-color: rgba(23, 10, 2, .1);
+  background-image: linear-gradient(to right, transparent 30%, rgba(255, 255, 255, .2) 50%, transparent 70%);
+  background-size: 19em 100%;
+  background-repeat: no-repeat;
+  pointer-events: all;
+}
+
+@keyframes shudanhex-busy {
+  from {
+    background-position: -19em 0;
+  }
+  to {
+    background-position: calc(100% + 19em) 0;
+  }
+}
+
+/* Hex grid lines */
+
+.shudanhex-hexline {
+  fill: none;
+  stroke: var(--shudanhex-board-foreground-color);
+  stroke-width: .04em;
+}
+
+/* Player edge borders */
+
+.shudanhex-edge {
+  stroke-width: var(--shudanhex-edge-width);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.shudanhex-edge_black {
+  stroke: var(--shudanhex-black-background-color);
+}
+.shudanhex-edge_white {
+  stroke: var(--shudanhex-white-background-color);
+}
+
+/* Star points */
+
+.shudanhex-star {
+  fill: var(--shudanhex-board-foreground-color);
+}
+
+/* Stone render */
+
+.shudanhex-vertex .shudanhex-stone {
+    width: var(--shudanhex-stone-size);
+    height: var(--shudanhex-stone-size);
+    left: calc((100% - var(--shudanhex-stone-size)) / 2);
+    top: calc((100% - var(--shudanhex-stone-size)) / 2);
+  }
+  .shudanhex-vertex.shudanhex-sign_0 .shudanhex-stone {
+    pointer-events: none;
+  }
+  .shudanhex-vertex:not(.shudanhex-sign_0) .shudanhex-stone::before {
+    content: '';
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 50%;
+    background: rgba(23, 10, 2, .4);
+    box-shadow: 0 .1em .2em rgba(23, 10, 2, .4);
+  }
+  .shudanhex-vertex .shudanhex-inner {
+    text-indent: -9999rem;
+  }
+  .shudanhex-vertex:not(.shudanhex-sign_0).shudanhex-dimmed .shudanhex-stone {
+    opacity: .6;
+  }
+  .shudanhex-stone-image {
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+  }
+  .shudanhex-stone-image.shudanhex-sign_1 {
+    background-image: url('./stone_1.svg');
+  }
+  .shudanhex-stone-image.shudanhex-sign_-1 {
+    background-image: url('./stone_-1.svg');
+}
+
+/* Hex clip-path for overlays (paint, selection) — pointy-top hexagon */
+
+.shudanhex-vertex .shudanhex-paint,
+.shudanhex-vertex .shudanhex-selection {
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+/* Fuzzy stone placement */
+
+.shudanhex-vertex:not(.shudanhex-sign_0).shudanhex-animate .shudanhex-stone {
+    transition: transform .2s;
+  }
+  .shudanhex-vertex:not(.shudanhex-sign_0).shudanhex-shift_1 .shudanhex-stone {
+    transform: translate(-.07em, 0);
+  }
+  .shudanhex-vertex:not(.shudanhex-sign_0).shudanhex-shift_2 .shudanhex-stone {
+    transform: translate(0, -.07em);
+  }
+  .shudanhex-vertex:not(.shudanhex-sign_0).shudanhex-shift_3 .shudanhex-stone {
+    transform: translate(.07em, 0);
+  }
+  .shudanhex-vertex:not(.shudanhex-sign_0).shudanhex-shift_4 .shudanhex-stone {
+    transform: translate(0, .07em);
+  }
+  .shudanhex-vertex:not(.shudanhex-sign_0).shudanhex-shift_5 .shudanhex-stone {
+    transform: translate(-.04em, -.04em);
+  }
+  .shudanhex-vertex:not(.shudanhex-sign_0).shudanhex-shift_6 .shudanhex-stone {
+    transform: translate(.04em, -.04em);
+  }
+  .shudanhex-vertex:not(.shudanhex-sign_0).shudanhex-shift_7 .shudanhex-stone {
+    transform: translate(.04em, .04em);
+  }
+  .shudanhex-vertex:not(.shudanhex-sign_0).shudanhex-shift_8 .shudanhex-stone {
+    transform: translate(-.04em, .04em);
+}
+
+/* Markers */
+
+.shudanhex-vertex .shudanhex-marker {
+    left: .04em;
+    top: .04em;
+    width: calc(100% - .08em);
+    height: calc(100% - .08em);
+    text-align: center;
+    fill: var(--shudanhex-board-background-color);
+    stroke: var(--shudanhex-board-foreground-color);
+    stroke-width: .07em;
+    pointer-events: none;
+  }
+  .shudanhex-vertex.shudanhex-sign_1 .shudanhex-marker,
+  .shudanhex-vertex.shudanhex-sign_-1 .shudanhex-marker {
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+  }
+  .shudanhex-vertex.shudanhex-sign_1 .shudanhex-marker {
+    stroke: var(--shudanhex-black-foreground-color);
+  }
+  .shudanhex-vertex.shudanhex-sign_-1 .shudanhex-marker {
+    stroke: var(--shudanhex-white-foreground-color);
+}
+
+.shudanhex-vertex.shudanhex-marker_point .shudanhex-marker {
+    stroke: none;
+    fill: var(--shudanhex-board-foreground-color);
+  }
+  .shudanhex-vertex.shudanhex-marker_point.shudanhex-sign_1 .shudanhex-marker {
+    fill: var(--shudanhex-black-foreground-color);
+  }
+  .shudanhex-vertex.shudanhex-marker_point.shudanhex-sign_-1 .shudanhex-marker {
+    fill: var(--shudanhex-white-foreground-color);
+}
+
+.shudanhex-vertex.shudanhex-marker_loader .shudanhex-marker {
+  stroke-dasharray: 1em;
+  animation: 1.5s linear 0s shudanhex-rotation infinite;
+}
+
+@keyframes shudanhex-rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.shudanhex-vertex.shudanhex-marker_label .shudanhex-marker {
+    display: inline-block;
+    width: auto;
+    height: auto;
+    left: 50%;
+    top: 50%;
+    max-width: 1.67em;
+    max-height: 1.67em;
+    overflow: hidden;
+    background: var(--shudanhex-board-background-color);
+    color: var(--shudanhex-board-foreground-color);
+    font-size: .6em;
+    line-height: 1.26;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: pre;
+    transform: translate(-50%, -50%);
+  }
+  .shudanhex-vertex.shudanhex-marker_label.shudanhex-sign_1 .shudanhex-marker {
+    background: transparent;
+    color: var(--shudanhex-black-foreground-color);
+  }
+  .shudanhex-vertex.shudanhex-marker_label.shudanhex-sign_-1 .shudanhex-marker {
+    background: transparent;
+    color: var(--shudanhex-white-foreground-color);
+  }
+  .shudanhex-vertex.shudanhex-smalllabel .shudanhex-marker {
+    max-height: 2.7em;
+    max-width: 2.7em;
+    font-size: .36em;
+}
+
+/* Ghost stones */
+
+.shudanhex-vertex .shudanhex-ghost {
+    left: 50%;
+    top: 50%;
+    width: .4em;
+    height: .4em;
+    opacity: .5;
+    transform: translate(calc(-50% + .5px), calc(-50% + .5px));
+  }
+  .shudanhex-vertex .shudanhex-ghost::before {
+    content: '';
+    box-sizing: border-box;
+    display: none;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: .4em;
+    height: .4em;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .shudanhex-vertex.shudanhex-ghost_faint .shudanhex-ghost {
+    opacity: .3;
+  }
+  .shudanhex-vertex.shudanhex-sign_0.shudanhex-ghost_1 .shudanhex-ghost::before,
+  .shudanhex-vertex.shudanhex-sign_0.shudanhex-ghost_-1 .shudanhex-ghost::before {
+    display: block;
+  }
+  .shudanhex-vertex.shudanhex-ghost_1 .shudanhex-ghost::before {
+    background: rgba(0, 0, 0, .8);
+  }
+  .shudanhex-vertex.shudanhex-ghost_-1 .shudanhex-ghost::before {
+    background: white;
+  }
+  .shudanhex-vertex.shudanhex-ghost_good .shudanhex-ghost::before {
+    background: #59A80F;
+  }
+  .shudanhex-vertex.shudanhex-ghost_interesting .shudanhex-ghost::before {
+    background: #4886D5;
+  }
+  .shudanhex-vertex.shudanhex-ghost_doubtful .shudanhex-ghost::before {
+    background: #92278F;
+  }
+  .shudanhex-vertex.shudanhex-ghost_bad .shudanhex-ghost::before {
+    background: #F02311;
+}
+
+/* Paint map */
+
+.shudanhex-vertex .shudanhex-paint {
+    overflow: hidden;
+  }
+  .shudanhex-vertex .shudanhex-paint::before {
+    content: '';
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    opacity: var(--shudanhex-paint-opacity);
+    box-shadow: var(--shudanhex-paint-box-shadow);
+    background: transparent;
+    border-radius: .2em;
+  }
+  .shudanhex-vertex.shudanhex-paint_1 .shudanhex-paint::before {
+    background: var(--shudanhex-black-background-color);
+  }
+  .shudanhex-vertex.shudanhex-paint_-1 .shudanhex-paint::before {
+    background: var(--shudanhex-white-background-color);
+}
+
+/* Heat map */
+
+.shudanhex-vertex .shudanhex-heat {
+    top: 50%;
+    left: 50%;
+    margin-left: -1px;
+    margin-top: -1px;
+    border-radius: 50%;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .5s, box-shadow .5s;
+  }
+  .shudanhex-vertex.shudanhex-heat_9 .shudanhex-heat {
+    background: #59A80F;
+    box-shadow: 0 0 1em 1em #59A80F;
+    opacity: .8;
+  }
+  .shudanhex-vertex.shudanhex-heat_8 .shudanhex-heat {
+    background: #59A80F;
+    box-shadow: 0 0 1em .9em #59A80F;
+    opacity: .7;
+  }
+  .shudanhex-vertex.shudanhex-heat_7 .shudanhex-heat {
+    background: #4886D5;
+    box-shadow: 0 0 1em .75em #4886D5;
+    opacity: .8;
+  }
+  .shudanhex-vertex.shudanhex-heat_6 .shudanhex-heat {
+    background: #4886D5;
+    box-shadow: 0 0 1em .6em #4886D5;
+    opacity: .8;
+  }
+  .shudanhex-vertex.shudanhex-heat_5 .shudanhex-heat {
+    background: #4886D5;
+    box-shadow: 0 0 .9em .55em #4886D5;
+    opacity: .7;
+  }
+  .shudanhex-vertex.shudanhex-heat_4 .shudanhex-heat {
+    background: #92278F;
+    box-shadow: 0 0 .85em .5em #92278F;
+    opacity: .8;
+  }
+  .shudanhex-vertex.shudanhex-heat_3 .shudanhex-heat {
+    background: #92278F;
+    box-shadow: 0 0 .8em .45em #92278F;
+    opacity: .7;
+  }
+  .shudanhex-vertex.shudanhex-heat_2 .shudanhex-heat {
+    background: #F02311;
+    box-shadow: 0 0 .75em .4em #F02311;
+    opacity: .8;
+  }
+  .shudanhex-vertex.shudanhex-heat_1 .shudanhex-heat {
+    background: #F02311;
+    box-shadow: 0 0 .75em .4em #F02311;
+    opacity: .7;
+}
+
+.shudanhex-vertex .shudanhex-heatlabel {
+  display: inline-block;
+  height: auto;
+  top: 50%;
+  left: 50%;
+  overflow: hidden;
+  color: white;
+  font-size: .36em;
+  line-height: 1.26;
+  text-align: center;
+  text-overflow: ellipsis;
+  text-shadow: 0 .1em .3em black;
+  white-space: pre;
+  opacity: .9;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* Selection */
+
+.shudanhex-vertex .shudanhex-selection {
+    box-sizing: border-box;
+    border: .1em solid #0082F0;
+    background: rgba(0, 130, 240, .2);
+}
+
+/* Lines & arrows */
+
+.shudanhex-line,
+.shudanhex-arrow {
+  fill: none;
+  stroke: var(--shudanhex-board-foreground-color);
+  stroke-width: .11em;
+}

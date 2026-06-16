@@ -1,101 +1,35 @@
 import { h, render, Component } from "preact";
-import Board from "@sabaki/go-board";
-import { Goban } from "../src/main.js";
+import { Hex } from "../src/main.js";
 
-const chineseCoord = [
-  "一",
-  "二",
-  "三",
-  "四",
-  "五",
-  "六",
-  "七",
-  "八",
-  "九",
-  "十",
-  "十一",
-  "十二",
-  "十三",
-  "十四",
-  "十五",
-  "十六",
-  "十七",
-  "十八",
-  "十九",
-];
+// 11x11 starting position (empty board)
+function emptyBoard(size) {
+  return Array(size)
+    .fill(null)
+    .map(() => Array(size).fill(0));
+}
 
-const signMap = [
-  [0, 0, 0, -1, -1, -1, 1, 0, 1, 1, -1, -1, 0, -1, 0, -1, -1, 1, 0],
-  [0, 0, -1, 0, -1, 1, 1, 1, 0, 1, -1, 0, -1, -1, -1, -1, 1, 1, 0],
-  [0, 0, -1, -1, -1, 1, 1, 0, 0, 1, 1, -1, -1, 1, -1, 1, 0, 1, 0],
-  [0, 0, 0, 0, -1, -1, 1, 0, 1, -1, 1, 1, 1, 1, 1, 0, 1, 0, 0],
-  [0, 0, 0, 0, -1, 0, -1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0],
-  [0, 0, -1, 0, 0, -1, -1, 1, 0, -1, -1, 1, -1, -1, 0, 1, 0, 0, 1],
-  [0, 0, 0, -1, -1, 1, 1, 1, 1, 1, 1, 1, 1, -1, -1, -1, 1, 1, 1],
-  [0, 0, -1, 1, 1, 0, 1, -1, -1, 1, 0, 1, -1, 0, 1, -1, -1, -1, 1],
-  [0, 0, -1, -1, 1, 1, 1, 0, -1, 1, -1, -1, 0, -1, -1, 1, 1, 1, 1],
-  [0, 0, -1, 1, 1, -1, -1, -1, -1, 1, 1, 1, -1, -1, -1, -1, 1, -1, -1],
-  [-1, -1, -1, -1, 1, 1, 1, -1, 0, -1, 1, -1, -1, 0, -1, 1, 1, -1, 0],
-  [-1, 1, -1, 0, -1, -1, -1, -1, -1, -1, 1, -1, 0, -1, -1, 1, -1, 0, -1],
-  [1, 1, 1, 1, -1, 1, 1, 1, -1, 1, 0, 1, -1, 0, -1, 1, -1, -1, 0],
-  [0, 1, -1, 1, 1, -1, -1, 1, -1, 1, 1, 1, -1, 1, -1, 1, 1, -1, 1],
-  [0, 0, -1, 1, 0, 0, 1, 1, -1, -1, 0, 1, -1, 1, -1, 1, -1, 0, -1],
-  [0, 0, 1, 0, 1, 0, 1, 1, 1, -1, -1, 1, -1, -1, 1, -1, -1, -1, 0],
-  [0, 0, 0, 0, 1, 1, 0, 1, -1, 0, -1, -1, 1, 1, 1, 1, -1, -1, -1],
-  [0, 0, 1, 1, -1, 1, 1, -1, 0, -1, -1, 1, 1, 1, 1, 0, 1, -1, 1],
-  [0, 0, 0, 1, -1, -1, -1, -1, -1, 0, -1, -1, 1, 1, 0, 1, 1, 1, 0],
-];
+const SIZE = 11;
 
-const paintMap = [
-  [-1, -1, -1, -1, -1, -1, 1, 1, 1, 1, -1, -1, -1, -1, -1, -1, -1, 1, 1],
-  [-1, -1, -1, -1, -1, 1, 1, 1, 1, 1, -1, -1, -1, -1, -1, -1, 1, 1, 1],
-  [-1, -1, -1, -1, -1, 1, 1, 1, 1, 1, 1, -1, -1, 1, -1, 1, 1, 1, 1],
-  [-1, -1, -1, -1, -1, -1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [-1, -1, -1, -1, -1, -1, -1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1],
-  [-1, -1, -1, -1, -1, -1, -1, 1, 1, 1, 1, 1, -1, -1, 0, 1, 1, 1, 1],
-  [-1, -1, -1, -1, -1, 1, 1, 1, 1, 1, 1, 1, 1, -1, -1, -1, 1, 1, 1],
-  [-1, -1, -1, 1, 1, 1, 1, -1, -1, 1, 0, 1, -1, -1, -1, -1, -1, -1, 1],
-  [-1, -1, -1, -1, 1, 1, 1, 0, -1, 1, -1, -1, -1, -1, -1, 1, 1, 1, 1],
-  [-1, -1, -1, 1, 1, -1, -1, -1, -1, 1, 1, 1, -1, -1, -1, -1, 1, -1, -1],
-  [-1, -1, -1, -1, 1, 1, 1, -1, -1, -1, 1, -1, -1, -1, -1, 1, 1, -1, -1],
-  [-1, 1, -1, 0, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1, -1, 1, -1, -1, -1],
-  [1, 1, 1, 1, -1, 1, 1, 1, -1, 1, 1, 1, -1, -1, -1, 1, -1, -1, -1],
-  [1, 1, 1, 1, 1, 1, 1, 1, -1, 1, 1, 1, -1, -1, -1, 1, 1, -1, -1],
-  [1, 1, 1, 1, 1, 1, 1, 1, -1, -1, 0, 1, -1, -1, -1, 1, -1, -1, -1],
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, -1, -1, 1, -1, -1, 1, -1, -1, -1, -1],
-  [1, 1, 1, 1, 1, 1, 1, 1, -1, -1, -1, -1, 1, 1, 1, 1, -1, -1, -1],
-  [1, 1, 1, 1, -1, 1, 1, -1, -1, -1, -1, 1, 1, 1, 1, 1, 1, -1, 1],
-  [1, 1, 1, 1, -1, -1, -1, -1, -1, -1, -1, -1, 1, 1, 1, 1, 1, 1, 1],
-].map((row) => row.map((sign) => ((Math.random() * 2 + 1) / 3) * sign));
+const paintMap = emptyBoard(SIZE).map((row, y) =>
+  row.map((_, x) => {
+    // Simple territory split for demo: black upper-right, white lower-left
+    const val = x - y;
+    if (val > 2) return ((Math.random() * 2 + 1) / 3) * 1;
+    if (val < -2) return ((Math.random() * 2 + 1) / 3) * -1;
+    return 0;
+  })
+);
 
 const heatMap = (() => {
   let _ = null;
   let O = (strength, text) => ({ strength, text });
-  let O1 = O(1, "20%\n111");
-  let O5 = O(5, "67%\n2315");
-  let O9 = O(9, "80%\n13.5k");
-
-  return [
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, O(7), O9, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, O(3), _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, O(2), _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, O1, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, O5, O(4), _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-  ];
+  const m = emptyBoard(SIZE).map((row) => row.map(() => _));
+  m[2][8] = O(9, "80%");
+  m[3][7] = O(7, "60%");
+  m[4][6] = O(3, "30%");
+  m[7][3] = O(5, "50%");
+  m[8][2] = O(2, "20%");
+  return m;
 })();
 
 const markerMap = (() => {
@@ -107,66 +41,36 @@ const markerMap = (() => {
   let $ = { type: "point" };
   let S = { type: "loader" };
   let L = (label) => ({ type: "label", label });
-  let A = L("a");
-  let B = L("b");
-  let C = L("c");
-  let longLabel = L("Long\nlabel with linebreak");
 
-  return [
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, O, O, O, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, X, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, X, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, X, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, T, T, T, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, $, $, $, _, _, _, _, _, _, _, _, _, _, _, S, S, S, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, Q, _, _, _, _, _, _, _, _, _, longLabel],
-    [_, _, _, _, _, _, _, _, Q, _, _, _, _, _, _, _, _, _, C],
-    [_, _, _, _, _, _, _, _, Q, _, _, _, _, _, _, _, _, _, B],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, A],
-  ];
+  const m = emptyBoard(SIZE).map((row) => row.map(() => _));
+  m[1][1] = O;
+  m[1][2] = O;
+  m[1][3] = O;
+  m[3][5] = X;
+  m[4][5] = X;
+  m[5][3] = T;
+  m[5][4] = T;
+  m[7][7] = Q;
+  m[8][7] = Q;
+  m[9][5] = $;
+  m[9][6] = S;
+  m[9][9] = L("A");
+  m[8][9] = L("B");
+  m[7][9] = L("C");
+  return m;
 })();
 
 const ghostStoneMap = (() => {
   let _ = null;
-  let O = (t) => ({ sign: -1, type: t });
-  let X = (t) => ({ sign: 1, type: t });
-  let o = (t) => ({ sign: -1, type: t, faint: true });
-  let x = (t) => ({ sign: 1, type: t, faint: true });
-  let [Xg, xg] = [X, x].map((f) => f("good"));
-  let [Xb, xb] = [X, x].map((f) => f("bad"));
-  let [Xi, xi] = [X, x].map((f) => f("interesting"));
-  let [Xd, xd] = [X, x].map((f) => f("doubtful"));
-
-  return [
-    [X(), x(), _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [O(), o(), _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [Xg, xg, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [Xi, xi, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [Xd, xd, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [Xb, xb, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _],
-  ];
+  const m = emptyBoard(SIZE).map((row) => row.map(() => _));
+  m[0][0] = { sign: 1 };
+  m[1][0] = { sign: -1 };
+  m[2][0] = { sign: 1, type: "good" };
+  m[3][0] = { sign: 1, type: "interesting" };
+  m[4][0] = { sign: 1, type: "doubtful" };
+  m[5][0] = { sign: 1, type: "bad" };
+  m[6][0] = { sign: -1, faint: true };
+  return m;
 })();
 
 const createTwoWayCheckBox =
@@ -185,7 +89,6 @@ const createTwoWayCheckBox =
         style: { marginRight: ".5em" },
         type: "checkbox",
         checked: component.state[stateKey],
-
         onClick: () =>
           component.setState((s) => ({ [stateKey]: !s[stateKey] })),
       }),
@@ -198,10 +101,9 @@ class App extends Component {
     super(props);
 
     this.state = {
-      board: new Board(signMap),
+      signMap: emptyBoard(SIZE),
       vertexSize: 24,
       showCoordinates: false,
-      alternateCoordinates: false,
       showCorner: false,
       showDimmedStones: false,
       fuzzyStonePlacement: false,
@@ -220,9 +122,9 @@ class App extends Component {
 
   render() {
     let {
+      signMap,
       vertexSize,
       showCoordinates,
-      alternateCoordinates,
       showCorner,
       showDimmedStones,
       fuzzyStonePlacement,
@@ -263,11 +165,10 @@ class App extends Component {
             "button",
             {
               type: "button",
-              onClick: (evt) => {
+              onClick: () =>
                 this.setState((s) => ({
                   vertexSize: Math.max(s.vertexSize - 4, 4),
-                }));
-              },
+                })),
             },
             "-"
           ),
@@ -278,9 +179,7 @@ class App extends Component {
             {
               type: "button",
               title: "Reset",
-              onClick: (evt) => {
-                this.setState({ vertexSize: 24 });
-              },
+              onClick: () => this.setState({ vertexSize: 24 }),
             },
             "•"
           ),
@@ -290,9 +189,8 @@ class App extends Component {
             "button",
             {
               type: "button",
-              onClick: (evt) => {
-                this.setState((s) => ({ vertexSize: s.vertexSize + 4 }));
-              },
+              onClick: () =>
+                this.setState((s) => ({ vertexSize: s.vertexSize + 4 })),
             },
             "+"
           )
@@ -308,9 +206,7 @@ class App extends Component {
             {
               type: "button",
               title: "Reset",
-              onClick: (evt) => {
-                this.setState({ board: new Board(signMap) });
-              },
+              onClick: () => this.setState({ signMap: emptyBoard(SIZE) }),
             },
             "•"
           )
@@ -321,16 +217,12 @@ class App extends Component {
           text: "Show coordinates",
         }),
         h(this.CheckBox, {
-          stateKey: "alternateCoordinates",
-          text: "Alternate coordinates",
-        }),
-        h(this.CheckBox, {
           stateKey: "showCorner",
-          text: "Show lower right corner only",
+          text: "Show lower-right corner only",
         }),
         h(this.CheckBox, {
           stateKey: "showDimmedStones",
-          text: "Dim dead stones",
+          text: "Dim some stones",
         }),
         h(this.CheckBox, {
           stateKey: "fuzzyStonePlacement",
@@ -355,20 +247,17 @@ class App extends Component {
       h(
         "div",
         {},
-        h(Goban, {
+        h(Hex, {
           innerProps: {
             onContextMenu: (evt) => evt.preventDefault(),
           },
 
           vertexSize,
-          animate: true,
           busy: this.state.isBusy,
-          rangeX: showCorner ? [8, 18] : undefined,
-          rangeY: showCorner ? [12, 18] : undefined,
-          coordX: alternateCoordinates ? (i) => chineseCoord[i] : undefined,
-          coordY: alternateCoordinates ? (i) => i + 1 : undefined,
+          rangeX: showCorner ? [6, 10] : undefined,
+          rangeY: showCorner ? [6, 10] : undefined,
 
-          signMap: this.state.board.signMap,
+          signMap,
           showCoordinates,
           fuzzyStonePlacement,
           animateStonePlacement,
@@ -379,53 +268,39 @@ class App extends Component {
 
           lines: showLines
             ? [
-                { type: "line", v1: [15, 6], v2: [12, 15] },
-                { type: "arrow", v1: [10, 4], v2: [5, 7] },
+                { type: "line", v1: [2, 2], v2: [8, 8] },
+                { type: "arrow", v1: [8, 2], v2: [2, 8] },
               ]
             : [],
 
           dimmedVertices: showDimmedStones
             ? [
-                [2, 14],
-                [2, 13],
-                [5, 13],
-                [6, 13],
-                [9, 3],
-                [9, 5],
-                [10, 5],
-                [14, 7],
-                [13, 13],
-                [13, 14],
-                [18, 13],
+                [3, 3],
+                [4, 3],
+                [3, 4],
+                [7, 6],
+                [7, 7],
               ]
             : [],
 
           selectedVertices: showSelection
             ? [
-                [8, 7],
-                [9, 7],
-                [9, 8],
-                [10, 7],
-                [10, 8],
+                [5, 5],
+                [6, 5],
+                [5, 6],
+                [6, 6],
               ]
             : [],
 
           onVertexMouseUp: (evt, [x, y]) => {
-            let sign = evt.button === 0 ? 1 : -1;
-            let newBoard = this.state.board.makeMove(sign, [x, y]);
-
-            this.setState({ board: newBoard });
+            const sign = evt.button === 0 ? 1 : -1;
+            this.setState((s) => {
+              const next = s.signMap.map((row) => row.slice());
+              next[y][x] = next[y][x] === sign ? 0 : sign;
+              return { signMap: next };
+            });
           },
-        }),
-
-        alternateCoordinates &&
-          h(
-            "style",
-            {},
-            `.shudan-coordx span {
-                font-size: .45em;
-            }`
-          )
+        })
       )
     );
   }

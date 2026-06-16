@@ -68,37 +68,39 @@ export default function Vertex(props) {
         title: marker?.label,
         style: {
           position: "relative",
+          width: "100%",
+          height: "100%",
         },
         className: classnames(
-          "shudan-vertex",
-          `shudan-random_${random}`,
-          `shudan-sign_${sign}`,
+          "shudanhex-vertex",
+          `shudanhex-random_${random}`,
+          `shudanhex-sign_${sign}`,
           {
-            [`shudan-shift_${shift}`]: !!shift,
-            [`shudan-heat_${!!heat && heat.strength}`]: !!heat,
-            "shudan-dimmed": dimmed,
-            "shudan-animate": animate,
+            [`shudanhex-shift_${shift}`]: !!shift,
+            [`shudanhex-heat_${!!heat && heat.strength}`]: !!heat,
+            "shudanhex-dimmed": dimmed,
+            "shudanhex-animate": animate,
 
-            [`shudan-paint_${paint > 0 ? 1 : -1}`]: !!paint,
-            "shudan-paintedleft": !!paint && signEquals(paintLeft, paint),
-            "shudan-paintedright": !!paint && signEquals(paintRight, paint),
-            "shudan-paintedtop": !!paint && signEquals(paintTop, paint),
-            "shudan-paintedbottom": !!paint && signEquals(paintBottom, paint),
+            [`shudanhex-paint_${paint > 0 ? 1 : -1}`]: !!paint,
+            "shudanhex-paintedleft": !!paint && signEquals(paintLeft, paint),
+            "shudanhex-paintedright": !!paint && signEquals(paintRight, paint),
+            "shudanhex-paintedtop": !!paint && signEquals(paintTop, paint),
+            "shudanhex-paintedbottom": !!paint && signEquals(paintBottom, paint),
 
-            "shudan-selected": selected,
-            "shudan-selectedleft": selectedLeft,
-            "shudan-selectedright": selectedRight,
-            "shudan-selectedtop": selectedTop,
-            "shudan-selectedbottom": selectedBottom,
+            "shudanhex-selected": selected,
+            "shudanhex-selectedleft": selectedLeft,
+            "shudanhex-selectedright": selectedRight,
+            "shudanhex-selectedtop": selectedTop,
+            "shudanhex-selectedbottom": selectedBottom,
 
-            [`shudan-marker_${marker?.type}`]: !!marker?.type,
-            "shudan-smalllabel":
+            [`shudanhex-marker_${marker?.type}`]: !!marker?.type,
+            "shudanhex-smalllabel":
               marker?.type === "label" &&
               (marker.label?.includes("\n") || marker.label.length >= 3),
 
-            [`shudan-ghost_${ghostStone?.sign}`]: !!ghostStone,
-            [`shudan-ghost_${ghostStone?.type}`]: !!ghostStone?.type,
-            "shudan-ghost_faint": !!ghostStone?.faint,
+            [`shudanhex-ghost_${ghostStone?.sign}`]: !!ghostStone,
+            [`shudanhex-ghost_${ghostStone?.type}`]: !!ghostStone?.type,
+            "shudanhex-ghost_faint": !!ghostStone?.faint,
           }
         ),
       },
@@ -112,13 +114,13 @@ export default function Vertex(props) {
       !!ghostStone &&
       h("div", {
         key: "ghost",
-        className: "shudan-ghost",
+        className: "shudanhex-ghost",
         style: absoluteStyle(1),
       }),
 
     h(
       "div",
-      { key: "stone", className: "shudan-stone", style: absoluteStyle(2) },
+      { key: "stone", className: "shudanhex-stone", style: absoluteStyle(2) },
 
       !!sign &&
         h(
@@ -126,10 +128,10 @@ export default function Vertex(props) {
           {
             key: "inner",
             className: classnames(
-              "shudan-inner",
-              "shudan-stone-image",
-              `shudan-random_${random}`,
-              `shudan-sign_${sign}`
+              "shudanhex-inner",
+              "shudanhex-stone-image",
+              `shudanhex-random_${random}`,
+              `shudanhex-sign_${sign}`
             ),
             style: absoluteStyle(),
           },
@@ -142,10 +144,10 @@ export default function Vertex(props) {
     (!!paint || !!paintLeft || !!paintRight || !!paintTop || !!paintBottom) &&
       h("div", {
         key: "paint",
-        className: "shudan-paint",
+        className: "shudanhex-paint",
         style: {
           ...absoluteStyle(3),
-          "--shudan-paint-opacity": avg(
+          "--shudanhex-paint-opacity": avg(
             (!!paint
               ? [paint]
               : [paintLeft, paintRight, paintTop, paintBottom].map(
@@ -153,7 +155,7 @@ export default function Vertex(props) {
                 )
             ).map((x) => Math.abs(x ?? 0) * 0.5)
           ),
-          "--shudan-paint-box-shadow": [
+          "--shudanhex-paint-box-shadow": [
             signEquals(paintLeft, paintTop, paintTopLeft)
               ? [Math.sign(paintTop), "-.5em -.5em"]
               : null,
@@ -172,8 +174,8 @@ export default function Vertex(props) {
               ([sign, translation]) =>
                 `${translation} 0 0 var(${
                   sign > 0
-                    ? "--shudan-black-background-color"
-                    : "--shudan-white-background-color"
+                    ? "--shudanhex-black-background-color"
+                    : "--shudanhex-white-background-color"
                 })`
             )
             .join(","),
@@ -183,13 +185,13 @@ export default function Vertex(props) {
     !!selected &&
       h("div", {
         key: "selection",
-        className: "shudan-selection",
+        className: "shudanhex-selection",
         style: absoluteStyle(4),
       }),
 
     h("div", {
       key: "heat",
-      className: "shudan-heat",
+      className: "shudanhex-heat",
       style: absoluteStyle(5),
     }),
     heat?.text != null &&
@@ -197,7 +199,7 @@ export default function Vertex(props) {
         "div",
         {
           key: "heatlabel",
-          className: "shudan-heatlabel",
+          className: "shudanhex-heatlabel",
           style: absoluteStyle(6),
         },
         heat.text && heat.text.toString()

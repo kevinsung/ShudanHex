@@ -1,4 +1,4 @@
-import Goban from "./Goban.js";
-import BoundedGoban from "./BoundedGoban.js";
+import Hex from "./Hex.js";
+import BoundedHex from "./BoundedHex.js";
 
-export { Goban, BoundedGoban };
+export { Hex, BoundedHex };

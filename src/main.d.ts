@@ -1,4 +1,4 @@
-export { default as Goban } from "./Goban";
-export { default as BoundedGoban } from "./BoundedGoban";
-export * from "./Goban";
-export * from "./BoundedGoban";
+export { default as Hex } from "./Hex";
+export { default as BoundedHex } from "./BoundedHex";
+export * from "./Hex";
+export * from "./BoundedHex";

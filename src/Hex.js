@@ -48,8 +48,17 @@ export default class Hex extends Component {
   }
 
   render() {
-    let { width, height, rangeX, rangeY, xs, ys, starPoints, shiftMap, randomMap } =
-      this.state;
+    let {
+      width,
+      height,
+      rangeX,
+      rangeY,
+      xs,
+      ys,
+      starPoints,
+      shiftMap,
+      randomMap,
+    } = this.state;
 
     let {
       innerProps = {},

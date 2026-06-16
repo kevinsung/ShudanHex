@@ -85,7 +85,8 @@ export default function Vertex(props) {
             "shudanhex-paintedleft": !!paint && signEquals(paintLeft, paint),
             "shudanhex-paintedright": !!paint && signEquals(paintRight, paint),
             "shudanhex-paintedtop": !!paint && signEquals(paintTop, paint),
-            "shudanhex-paintedbottom": !!paint && signEquals(paintBottom, paint),
+            "shudanhex-paintedbottom":
+              !!paint && signEquals(paintBottom, paint),
 
             "shudanhex-selected": selected,
             "shudanhex-selectedleft": selectedLeft,

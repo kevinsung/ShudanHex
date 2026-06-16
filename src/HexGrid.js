@@ -6,10 +6,37 @@ function pts(pairs) {
   return pairs.map(([x, y]) => `${x},${y}`).join(" ");
 }
 
+// Clip a convex polygon to the half-plane { sign * dot(p − P, n) ≥ 0 }
+// using the Sutherland–Hodgman algorithm.
+function clipHalfPlane(polygon, P, n, sign) {
+  const result = [];
+  const len = polygon.length;
+  for (let i = 0; i < len; i++) {
+    const cur = polygon[i];
+    const nxt = polygon[(i + 1) % len];
+    const dCur = sign * ((cur[0] - P[0]) * n[0] + (cur[1] - P[1]) * n[1]);
+    const dNxt = sign * ((nxt[0] - P[0]) * n[0] + (nxt[1] - P[1]) * n[1]);
+    if (dCur >= 0) result.push(cur);
+    if (dCur >= 0 !== dNxt >= 0) {
+      const t = dCur / (dCur - dNxt);
+      result.push([
+        cur[0] + t * (nxt[0] - cur[0]),
+        cur[1] + t * (nxt[1] - cur[1]),
+      ]);
+    }
+  }
+  return result;
+}
+
+let _clipIdCounter = 0;
+
 export default function HexGrid(props) {
   let { vertexSize, xs, ys, starPoints } = props;
   let ncols = xs.length;
   let nrows = ys.length;
+
+  // Stable clip-path ID prefix for this component instance (survives re-renders).
+  const clipId = useMemo(() => `shudanhex-ec-${_clipIdCounter++}`, []);
 
   return useMemo(() => {
     if (ncols === 0 || nrows === 0) return null;
@@ -90,6 +117,70 @@ export default function HexGrid(props) {
     const totalWidth = ncols * W + ((nrows - 1) * W) / 2;
     const totalHeight = 2 * R + (nrows - 1) * H;
 
+    // --- Edge clip paths: diagonal seam at each corner ---
+    //
+    // At each corner the black and white edges share an endpoint. Without
+    // clipping, each round stroke-cap paints over the other (white on top
+    // in DOM order). Instead, we bisect the angle between the two edges at
+    // every corner and clip each polyline to its own half-plane so the caps
+    // meet cleanly along the bisector with no overlap.
+    //
+    // Corner points (shared endpoints of black and white edges):
+    const P_TL = [0, R / 2];
+    const P_TR = [ncols * W, R / 2];
+    const P_BL = [(J * W) / 2, cyJ + R / 2];
+    const P_BR = [(ncols + J / 2) * W, cyJ + R / 2];
+
+    // Bisector normals, oriented so that black is on the positive side.
+    // Derived from normalize(db + dw) where db/dw are the unit directions of
+    // the black/white edge leaving each corner. By hex geometry these are
+    // constant for all board sizes:
+    //   TL: db=(√3/2,−½), dw=(0,1)  → bisector=(√3/2,½) → n=(½,−√3/2)
+    //   TR: db=(−√3/2,−½), dw=(0,1) → bisector=(−√3/2,½) → n=(−½,−√3/2)
+    //   BL: db=(√3/2,½), dw=(0,−1)  → bisector=(√3/2,−½) → n=(½,√3/2)
+    //   BR: db=(−√3/2,½), dw=(0,−1) → bisector=(−√3/2,−½) → n=(−½,√3/2)
+    const SQ3_2 = Math.sqrt(3) / 2;
+    const n_TL = [0.5, -SQ3_2];
+    const n_TR = [-0.5, -SQ3_2];
+    const n_BL = [0.5, SQ3_2];
+    const n_BR = [-0.5, SQ3_2];
+
+    // Start each clip polygon as a generous bounding box and intersect it
+    // with the two half-planes at the edge's endpoints.
+    // sign +1 = black side, sign −1 = white side.
+    const m = 2 * W;
+    const bbox = [
+      [-m, -m],
+      [totalWidth + m, -m],
+      [totalWidth + m, totalHeight + m],
+      [-m, totalHeight + m],
+    ];
+
+    const clipTop = clipHalfPlane(
+      clipHalfPlane(bbox, P_TL, n_TL, 1),
+      P_TR,
+      n_TR,
+      1
+    );
+    const clipBottom = clipHalfPlane(
+      clipHalfPlane(bbox, P_BL, n_BL, 1),
+      P_BR,
+      n_BR,
+      1
+    );
+    const clipLeft = clipHalfPlane(
+      clipHalfPlane(bbox, P_TL, n_TL, -1),
+      P_BL,
+      n_BL,
+      -1
+    );
+    const clipRight = clipHalfPlane(
+      clipHalfPlane(bbox, P_TR, n_TR, -1),
+      P_BR,
+      n_BR,
+      -1
+    );
+
     return h(
       "svg",
       {
@@ -107,6 +198,31 @@ export default function HexGrid(props) {
         preserveAspectRatio: "none",
       },
 
+      h(
+        "defs",
+        { key: "defs" },
+        h(
+          "clipPath",
+          { key: "cp-top", id: `${clipId}-top` },
+          h("polygon", { points: pts(clipTop) })
+        ),
+        h(
+          "clipPath",
+          { key: "cp-bottom", id: `${clipId}-bottom` },
+          h("polygon", { points: pts(clipBottom) })
+        ),
+        h(
+          "clipPath",
+          { key: "cp-left", id: `${clipId}-left` },
+          h("polygon", { points: pts(clipLeft) })
+        ),
+        h(
+          "clipPath",
+          { key: "cp-right", id: `${clipId}-right` },
+          h("polygon", { points: pts(clipRight) })
+        )
+      ),
+
       ...hexagons.flat(),
 
       h("polyline", {
@@ -114,24 +230,28 @@ export default function HexGrid(props) {
         className: "shudanhex-edge shudanhex-edge_black",
         points: pts(topPts),
         fill: "none",
+        "clip-path": `url(#${clipId}-top)`,
       }),
       h("polyline", {
         key: "edge-bottom",
         className: "shudanhex-edge shudanhex-edge_black",
         points: pts(bottomPts),
         fill: "none",
+        "clip-path": `url(#${clipId}-bottom)`,
       }),
       h("polyline", {
         key: "edge-left",
         className: "shudanhex-edge shudanhex-edge_white",
         points: pts(leftPts),
         fill: "none",
+        "clip-path": `url(#${clipId}-left)`,
       }),
       h("polyline", {
         key: "edge-right",
         className: "shudanhex-edge shudanhex-edge_white",
         points: pts(rightPts),
         fill: "none",
+        "clip-path": `url(#${clipId}-right)`,
       }),
 
       ...stars

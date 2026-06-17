@@ -34,7 +34,7 @@ export function CoordX({
           key: x,
           style: {
             position: "absolute",
-            left: cx,
+            left: cx - vertexSize / 2,
             top: -labelHeight,
             transform: "translateX(-50%)",
             fontSize: labelHeight,
@@ -76,19 +76,18 @@ export function CoordY({
     },
 
     ys.map((y, j) => {
-      const { cy } = cellCenter(0, j, vertexSize);
+      const { cx, cy } = cellCenter(0, j, vertexSize);
       return h(
         "span",
         {
           key: y,
           style: {
             position: "absolute",
-            right: "100%",
+            left: cx - vertexSize / 2,
             top: cy,
-            transform: "translateY(-50%)",
+            transform: "translate(-100%, -50%)",
             fontSize: labelFontSize,
             lineHeight: "1",
-            textAlign: "right",
             whiteSpace: "nowrap",
             paddingRight: "0.3em",
           },

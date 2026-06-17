@@ -9,7 +9,7 @@ export function CoordX({
   R,
   coordX = (i) => alpha[i] ?? alpha[alpha.length - 1],
 }) {
-  const labelHeight = vertexSize * 0.6; // font-size .6em
+  const labelHeight = vertexSize * 0.4; // font-size .4em
 
   return h(
     "div",
@@ -57,7 +57,7 @@ export function CoordY({
   H,
   coordY = (i) => i + 1,
 }) {
-  const labelFontSize = vertexSize * 0.6;
+  const labelFontSize = vertexSize * 0.4;
 
   return h(
     "div",

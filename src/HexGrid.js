@@ -96,6 +96,19 @@ export default function HexGrid(props) {
       rightPts.push([rx, cy + R / 2]); // bottom-right vertex
     }
 
+    // Seam points at the obtuse corners (top-right, bottom-left): the
+    // black/white border sits at the midpoint of the corner hex's outer
+    // slanted face, not at the shared corner vertex, so that face is split
+    // evenly and white visibly wraps around the corner. (At the acute
+    // corners, top-left and bottom-right, the seam stays at the vertex.)
+    const Q_TR = [(ncols - 0.25) * W, R / 4]; // mid of top-right hex's NE face
+    const Q_BL = [((J + 0.5) * W) / 2, cyJ + (3 * R) / 4]; // mid of bottom-left hex's SW face
+
+    topPts[topPts.length - 1] = Q_TR;
+    rightPts.unshift(Q_TR);
+    bottomPts[0] = Q_BL;
+    leftPts.push(Q_BL);
+
     // --- Star points ---
     const stars = starPoints
       .map(([x, y]) => {
@@ -117,33 +130,40 @@ export default function HexGrid(props) {
     const totalWidth = ncols * W + ((nrows - 1) * W) / 2;
     const totalHeight = 2 * R + (nrows - 1) * H;
 
-    // --- Edge clip paths: diagonal seam at each corner ---
+    // --- Edge clip paths: clean seam at each corner ---
     //
-    // At each corner the black and white edges share an endpoint. Without
-    // clipping, each round stroke-cap paints over the other (white on top
-    // in DOM order). Instead, we bisect the angle between the two edges at
-    // every corner and clip each polyline to its own half-plane so the caps
-    // meet cleanly along the bisector with no overlap.
+    // At each corner the black and white edges overlap. Without clipping,
+    // each round stroke-cap paints over the other (white on top in DOM
+    // order). We clip each polyline to its own half-plane so the strokes
+    // meet cleanly with no overlap.
     //
-    // Corner points (shared endpoints of black and white edges):
+    // At the two acute corners (top-left, bottom-right) the seam bisects
+    // the angle between the two edges at the shared corner vertex. At the
+    // two obtuse corners (top-right, bottom-left) the seam instead cuts
+    // through the midpoint of the corner hex's outer slanted face (Q_TR /
+    // Q_BL, set above), splitting that face evenly between black and white
+    // so white visibly wraps around the corner — see hexagon symmetry.
+    //
+    // Corner vertices (acute corners only; obtuse corners use Q_TR/Q_BL):
     const P_TL = [0, R / 2];
-    const P_TR = [ncols * W, R / 2];
-    const P_BL = [(J * W) / 2, cyJ + R / 2];
     const P_BR = [(ncols + J / 2) * W, cyJ + R / 2];
 
-    // Bisector normals, oriented so that black is on the positive side.
-    // Derived from normalize(db + dw) where db/dw are the unit directions of
-    // the black/white edge leaving each corner. By hex geometry these are
-    // constant for all board sizes:
+    // Bisector normals at the acute corners, oriented so that black is on
+    // the positive side. Derived from normalize(db + dw) where db/dw are
+    // the unit directions of the black/white edge leaving each corner. By
+    // hex geometry these are constant for all board sizes:
     //   TL: db=(√3/2,−½), dw=(0,1)  → bisector=(√3/2,½) → n=(½,−√3/2)
-    //   TR: db=(−√3/2,−½), dw=(0,1) → bisector=(−√3/2,½) → n=(−½,−√3/2)
-    //   BL: db=(√3/2,½), dw=(0,−1)  → bisector=(√3/2,−½) → n=(½,√3/2)
     //   BR: db=(−√3/2,½), dw=(0,−1) → bisector=(−√3/2,−½) → n=(−½,√3/2)
     const SQ3_2 = Math.sqrt(3) / 2;
     const n_TL = [0.5, -SQ3_2];
-    const n_TR = [-0.5, -SQ3_2];
-    const n_BL = [0.5, SQ3_2];
     const n_BR = [-0.5, SQ3_2];
+
+    // Seam normals at the obtuse corners: the seam runs along the split
+    // face's midline, so the clip normal is the face's own unit direction.
+    //   TR: NE face direction (top→tr) = (√3/2, ½)
+    //   BL: SW face direction (bottom→bottom-left) = (−√3/2, −½)
+    const u_TR = [SQ3_2, 0.5];
+    const u_BL = [-SQ3_2, -0.5];
 
     // Start each clip polygon as a generous bounding box and intersect it
     // with the two half-planes at the edge's endpoints.
@@ -158,24 +178,24 @@ export default function HexGrid(props) {
 
     const clipTop = clipHalfPlane(
       clipHalfPlane(bbox, P_TL, n_TL, 1),
-      P_TR,
-      n_TR,
-      1
+      Q_TR,
+      u_TR,
+      -1
     );
     const clipBottom = clipHalfPlane(
-      clipHalfPlane(bbox, P_BL, n_BL, 1),
+      clipHalfPlane(bbox, Q_BL, u_BL, -1),
       P_BR,
       n_BR,
       1
     );
     const clipLeft = clipHalfPlane(
       clipHalfPlane(bbox, P_TL, n_TL, -1),
-      P_BL,
-      n_BL,
-      -1
+      Q_BL,
+      u_BL,
+      1
     );
     const clipRight = clipHalfPlane(
-      clipHalfPlane(bbox, P_TR, n_TR, -1),
+      clipHalfPlane(bbox, Q_TR, u_TR, 1),
       P_BR,
       n_BR,
       -1

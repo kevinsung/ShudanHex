@@ -55,8 +55,7 @@ export function CoordY({
   vertexSize,
   R,
   H,
-  height,
-  coordY = (i) => height - i,
+  coordY = (i) => i + 1,
 }) {
   const labelFontSize = vertexSize * 0.6;
 

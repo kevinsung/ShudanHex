@@ -205,7 +205,7 @@ All props are optional. The following props are supported:
 
   A function that determines coordinate label by `x` value of a vertex.
 
-- `coordY` `<Function>` - Default: `y => height - y`
+- `coordY` `<Function>` - Default: `y => y + 1`
 
   A function that determines coordinate label by `y` value of a vertex.
 

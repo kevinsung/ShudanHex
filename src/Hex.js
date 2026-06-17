@@ -272,7 +272,6 @@ export default class Hex extends Component {
             R,
             H,
             coordY,
-            height,
           })
       )
     );

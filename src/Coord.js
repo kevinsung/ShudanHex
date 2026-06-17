@@ -88,7 +88,7 @@ export function CoordY({
             fontSize: labelFontSize,
             lineHeight: "1",
             whiteSpace: "nowrap",
-            paddingRight: "0.3em",
+            paddingRight: "0.6em",
           },
         },
         coordY(y)

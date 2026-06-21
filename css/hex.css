@@ -151,6 +151,14 @@
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
 }
 
+/* Clip each cell's clickable wrapper to the hexagon shape. Without this, the
+   wrapper is a full W x 2R rectangle, which overlaps the row below's wrapper
+   near the bottom corners — a click low inside a hexagon would otherwise hit
+   the cell below it instead. */
+.shudanhex-vertices > div {
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
 /* Fuzzy stone placement */
 
 .shudanhex-vertex:not(.shudanhex-sign_0).shudanhex-animate .shudanhex-stone {
